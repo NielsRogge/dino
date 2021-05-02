@@ -187,6 +187,8 @@ class VisionTransformer(nn.Module):
         B = x.shape[0]
         x = self.patch_embed(x)
 
+        print("Shape of x after patch embeddings:", x.shape)
+
         cls_tokens = self.cls_token.expand(B, -1, -1)
         x = torch.cat((cls_tokens, x), dim=1)
         pos_embed = self.interpolate_pos_encoding(x, self.pos_embed)
@@ -201,8 +203,13 @@ class VisionTransformer(nn.Module):
         return x[:, 0]
 
     def interpolate_pos_encoding(self, x, pos_embed):
+        print("Shape of x:", x.shape)
+        
         npatch = x.shape[1] - 1
         N = pos_embed.shape[1] - 1
+
+        print("N:", N)
+
         if npatch == N:
             return pos_embed
         class_emb = pos_embed[:, 0]
