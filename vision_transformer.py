@@ -203,12 +203,9 @@ class VisionTransformer(nn.Module):
         return x[:, 0]
 
     def interpolate_pos_encoding(self, x, pos_embed):
-        print("Shape of x:", x.shape)
         
         npatch = x.shape[1] - 1
         N = pos_embed.shape[1] - 1
-
-        print("N:", N)
 
         if npatch == N:
             return pos_embed
@@ -228,17 +225,25 @@ class VisionTransformer(nn.Module):
         N = self.pos_embed.shape[1] - 1
         x = self.patch_embed(x)
 
+        print("N:", N)
+        print("Shape of x after patch embeddings:", x.shape)
+
         # interpolate patch embeddings
         dim = x.shape[-1]
         w0 = w // self.patch_embed.patch_size
         h0 = h // self.patch_embed.patch_size
+        print("w0:", w0)
+        print("h0:", h0)
         class_pos_embed = self.pos_embed[:, 0]
         patch_pos_embed = self.pos_embed[:, 1:]
+        print("Shape of class pos embed:", class_pos_embed.shape)
+        print("Shape of patch pos embed:", patch_pos_embed.shape)
         patch_pos_embed = nn.functional.interpolate(
             patch_pos_embed.reshape(1, int(math.sqrt(N)), int(math.sqrt(N)), dim).permute(0, 3, 1, 2),
             scale_factor=(w0 / math.sqrt(N), h0 / math.sqrt(N)),
             mode='bicubic',
         )
+        print("Shape of patch pos embed after interpolation:", patch_pos_embed.shape)
         if w0 != patch_pos_embed.shape[-2]:
             helper = torch.zeros(h0)[None, None, None, :].repeat(1, dim, w0 - patch_pos_embed.shape[-2], 1).to(x.device)
             patch_pos_embed = torch.cat((patch_pos_embed, helper), dim=-2)
